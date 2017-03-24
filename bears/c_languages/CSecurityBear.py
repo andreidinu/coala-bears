@@ -1,5 +1,5 @@
 from coalib.bearlib.abstractions.Linter import linter
-from coalib.bears.requirements.DistributionRequirement import (
+from dependency_management.requirements.DistributionRequirement import (
     DistributionRequirement)
 from coalib.results.RESULT_SEVERITY import RESULT_SEVERITY
 
@@ -8,7 +8,7 @@ from coalib.results.RESULT_SEVERITY import RESULT_SEVERITY
         output_format='regex',
         output_regex=r'.+:(?P<line>\d+):(?P<column>\d+):\s*'
                      r'\[(?P<severity>\d)\]\s*'
-                     r'\((?P<origin>.+)\) (?P<message>.+)',
+                     r'\((?P<origin>[^\)]+)\) (?P<message>.+)',
         severity_map={'1': RESULT_SEVERITY.INFO,
                       '2': RESULT_SEVERITY.INFO,
                       '3': RESULT_SEVERITY.NORMAL,
@@ -16,7 +16,10 @@ from coalib.results.RESULT_SEVERITY import RESULT_SEVERITY
                       '5': RESULT_SEVERITY.MAJOR},
         prerequisite_check_command=('flawfinder',),
         prerequisite_check_fail_message=('Flawfinder needs to be run with '
-                                         'python2.'))
+                                         'python2. If you have it installed, '
+                                         'make sure the first line in the '
+                                         'script is '
+                                         '"#!/usr/bin/env python2".'))
 class CSecurityBear:
     """
     Report possible security weaknesses for C/C++.

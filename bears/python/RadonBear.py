@@ -2,7 +2,7 @@ import radon.complexity
 import radon.visitors
 
 from coalib.bears.LocalBear import LocalBear
-from coalib.bears.requirements.PipRequirement import PipRequirement
+from dependency_management.requirements.PipRequirement import PipRequirement
 from coalib.results.Result import Result
 from coalib.results.RESULT_SEVERITY import RESULT_SEVERITY
 from coalib.results.SourceRange import SourceRange
@@ -11,7 +11,7 @@ from coalib.settings.Setting import typed_list
 
 class RadonBear(LocalBear):
     LANGUAGES = {'Python', 'Python 2', 'Python 3'}
-    REQUIREMENTS = {PipRequirement('radon', '1.4')}
+    REQUIREMENTS = {PipRequirement('radon', '1.4.0')}
     AUTHORS = {'The coala developers'}
     AUTHORS_EMAILS = {'coala-devel@googlegroups.com'}
     LICENSE = 'AGPL-3.0'

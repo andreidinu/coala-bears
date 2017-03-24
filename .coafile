@@ -16,7 +16,7 @@ default_actions = *: ApplyPatchAction
 preferred_quotation = '
 
 [autopep8]
-bears = PEP8Bear
+bears = PEP8Bear, PycodestyleBear
 default_actions = PEP8Bear: ApplyPatchAction
 
 [linelength]  # Sometimes autopep8 makes too long lines, need to check after!
@@ -31,11 +31,19 @@ bears = SpaceConsistencyBear
 bears = GitCommitBear
 shortlog_trailing_period = False
 shortlog_regex = ([^:]*|[^:]+: [A-Z0-9*].*)
+body_close_issue = True
+body_close_issue_full_url = True
+body_close_issue_on_last_line = True
+body_enforce_issue_reference = False
 
 [LineCounting]
 enabled = False
 bears = LineCountBear
 max_lines_per_file = 1000
+
+[rst]
+bear = reSTLintBear
+files = **.rst
 
 [TODOS]
 enabled = False
@@ -46,3 +54,7 @@ language = python3
 # 0.8.x (current stable release) needs them.
 ci_keywords, keywords = \#TODO, \# TODO, \#FIXME, \# FIXME
 cs_keywords =
+
+[PythonPackageInit]
+bears = PythonPackageInitBear
+ignore = *.py

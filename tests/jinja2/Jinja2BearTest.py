@@ -2,7 +2,7 @@ import unittest
 from queue import Queue
 from coalib.settings.Section import Section
 from bears.jinja2.Jinja2Bear import Jinja2Bear
-from tests.LocalBearTestHelper import verify_local_bear, execute_bear
+from coalib.testing.LocalBearTestHelper import verify_local_bear, execute_bear
 
 
 Jinja2BearVariableSpacingTest = verify_local_bear(
@@ -54,6 +54,7 @@ class Jinja2BearSpacingDiffTest(unittest.TestCase):
                              ' rendering stuff\n'
                              '-{% endfor%}{# for x in y #}\n'
                              '+{% endfor %}{# for x in y #}\n')
+
 
 Jinja2BearControlSpacingTest = verify_local_bear(
     Jinja2Bear,
@@ -140,6 +141,7 @@ class Jinja2BearLabelDiffTest(unittest.TestCase):
                 ' render stuff\n'
                 '-{% endif %}{# some random comment #} more stuff\n'
                 '+{% endif %}{# if x == something #} more stuff\n')
+
 
 Jinja2BearControlBlockTest = verify_local_bear(
     Jinja2Bear,

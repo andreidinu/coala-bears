@@ -1,7 +1,7 @@
 import os
 
 from bears.ruby.RuboCopBear import RuboCopBear
-from tests.LocalBearTestHelper import verify_local_bear
+from coalib.testing.LocalBearTestHelper import verify_local_bear
 
 good_file = """def good_name
   test if something
@@ -21,7 +21,7 @@ RuboCopBearTest = verify_local_bear(RuboCopBear,
 # Testing Config
 rubocop_config = os.path.join(os.path.dirname(__file__),
                               'test_files',
-                              'rubocop_config.yml')
+                              'rubocop_config.yaml')
 
 
 # bad file becomes good and vice-versa

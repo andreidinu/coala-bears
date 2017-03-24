@@ -1,8 +1,10 @@
 import io
+import logging
 from queue import Queue
 import requests
 import requests_mock
 import unittest
+import unittest.mock
 
 from bears.general.InvalidLinkBear import InvalidLinkBear
 from coalib.settings.Section import Section
@@ -75,6 +77,15 @@ class InvalidLinkBearTest(unittest.TestCase):
                 self.assertNotEqual(out, [])
                 self.assertNotEqual(out, None)
 
+    def assertResultCount(self, test_file, expected_num):
+        with requests_mock.Mocker() as m:
+            InvalidLinkBear.check_prerequisites = lambda *args: True
+            uut = InvalidLinkBear(self.section, Queue())
+            m.add_matcher(custom_matcher)
+            for line, num in zip(test_file, expected_num):
+                outputs = list(uut.run('testline', [line]))
+                self.assertEqual(num, len(outputs))
+
     def test_run(self):
         # Valid Links
         valid_file = """
@@ -95,6 +106,7 @@ class InvalidLinkBearTest(unittest.TestCase):
         <http://httpbin.org/status/202>
         http://httpbin.org/status/204.....
         [httpbin](http://httpbin.org/status/200)
+        [http://httpbin.org/status/200](http://httpbin.org/status/200)
         |http://httpbin.org/status/200|
         <h3>Something http://httpbin.org/status/200</h3>
         repo=\\"http://httpbin.org/status/200\\"
@@ -152,6 +164,20 @@ class InvalidLinkBearTest(unittest.TestCase):
                           invalid_file=short_url_redirect,
                           settings={'follow_redirects': 'yeah'})
 
+    def test_multiple_results_per_line(self):
+
+        test_file = """
+        http://httpbin.org/status/410
+        http://httpbin.org/status/200
+        http://httpbin.org/status/404 http://httpbin.org/status/410
+        http://httpbin.org/status/200 http://httpbin.org/status/404
+        http://httpbin.org/status/200 http://httpbin.org/status/201
+        """.splitlines()
+
+        expected_num_results = [0, 1, 0, 2, 1, 0]
+
+        self.assertResultCount(test_file, expected_num_results)
+
     def test_pip_vcs_url(self):
         with_at = """
         git+http://httpbin.org/status/200@master
@@ -203,3 +229,84 @@ class InvalidLinkBearTest(unittest.TestCase):
 
         for line in brokenlink_at_hash.splitlines():
             self.assertResult(invalid_file=[line])
+
+    def test_links_to_ignore(self):
+        valid_file = """http://httpbin.org/status/200
+        http://httpbin.org/status/201
+        http://coalaisthebest.com/
+        http://httpbin.org/status/404
+        http://httpbin.org/status/410
+        http://httpbin.org/status/500
+        http://httpbin.org/status/503
+        http://www.notexample.com/404
+        http://exampe.com/404
+        http://example.co.in/404""".splitlines()
+
+        link_ignore_list = [
+                           'http://coalaisthebest.com/',
+                           'http://httpbin.org/status/4[0-9][0-9]',
+                           'http://httpbin.org/status/410',
+                           'http://httpbin.org/status/5[0-9][0-9]',
+                           'http://httpbin.org/status/503',
+                           'http://www.notexample.com/404',
+                           'http://exampe.com/404',
+                           'http://example.co.in/404'
+                          ]
+
+        self.assertResult(valid_file=valid_file,
+                          settings={'link_ignore_list': link_ignore_list})
+
+    def test_variable_timeouts(self):
+        nt = {
+            'https://google.com/timeout/test/2/3/4/5/something': 10,
+            'https://facebook.com/timeout': 2,
+            '*': 25
+        }
+
+        file_contents = """
+        https://facebook.com/
+        https://google.com/
+        https://coala.io/som/thingg/page/123
+        """.splitlines()
+
+        def response(status_code, *args, **kwargs):
+            res = requests.Response()
+            res.status_code = status_code
+            return res
+
+        with unittest.mock.patch(
+                'tests.general.InvalidLinkBearTest.requests.head',
+                return_value=response(status_code=200)) as mock:
+            uut = InvalidLinkBear(self.section, Queue())
+            self.assertEqual([x.message
+                              for x in list(uut.run('file', file_contents,
+                                                    network_timeout=nt))], [])
+
+            with self.assertLogs(logging.getLogger()) as log:
+                self.assertEqual([x.message
+                                  for x in list(uut.run('file', file_contents,
+                                                        timeout=20))], [])
+                self.assertEqual(log.output,
+                                 ['WARNING:root:The setting `timeout` is '
+                                  'deprecated. Please use `network_timeout` '
+                                  'instead.'])
+
+            self.assertEqual([x.message
+                              for x in list(uut.run('file',
+                                                    ['https://gitmate.io']))],
+                             [])
+            mock.assert_has_calls([
+                unittest.mock.call('https://facebook.com/', timeout=2,
+                                   allow_redirects=False),
+                unittest.mock.call('https://google.com/',
+                                   timeout=10, allow_redirects=False),
+                unittest.mock.call('https://coala.io/som/thingg/page/123',
+                                   timeout=25, allow_redirects=False),
+                unittest.mock.call('https://facebook.com/', timeout=20,
+                                   allow_redirects=False),
+                unittest.mock.call('https://google.com/',
+                                   timeout=20, allow_redirects=False),
+                unittest.mock.call('https://coala.io/som/thingg/page/123',
+                                   timeout=20, allow_redirects=False),
+                unittest.mock.call('https://gitmate.io',
+                                   timeout=15, allow_redirects=False)])

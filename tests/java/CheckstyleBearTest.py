@@ -4,14 +4,16 @@ from tempfile import NamedTemporaryFile
 from queue import Queue
 
 from bears.java import CheckstyleBear
-from tests.BearTestHelper import generate_skip_decorator
-from tests.LocalBearTestHelper import LocalBearTestHelper
+from coalib.testing.BearTestHelper import generate_skip_decorator
+from coalib.testing.LocalBearTestHelper import LocalBearTestHelper
 from coalib.settings.Section import Section
-from coalib.settings.Setting import path, Setting
+from coalib.settings.Setting import Setting
 
 
 @generate_skip_decorator(CheckstyleBear.CheckstyleBear)
 class CheckstyleBearTest(LocalBearTestHelper):
+
+    GOOGLE_VALUEERROR_RE = 'ValueError: Google checkstyle config'
 
     def setUp(self):
         self.section = Section('test section')
@@ -41,20 +43,16 @@ class CheckstyleBearTest(LocalBearTestHelper):
         self.section['checkstyle_configs'] = 'android-check-hard'
         self.check_validity(self.uut, [], self.good_file)
 
-    def test_style_geosoft(self):
-        self.section['checkstyle_configs'] = 'geosoft'
-        self.check_validity(self.uut, [], self.good_file)
-
     def test_config_failure_use_spaces(self):
         self.section['checkstyle_configs'] = 'google'
         self.section.append(Setting('use_spaces', False))
-        with self.assertRaises(AssertionError):
+        with self.assertRaisesRegex(AssertionError, self.GOOGLE_VALUEERROR_RE):
             self.check_validity(self.uut, [], self.good_file)
 
     def test_config_failure_indent_size(self):
         self.section['checkstyle_configs'] = 'google'
         self.section.append(Setting('indent_size', 3))
-        with self.assertRaises(AssertionError):
+        with self.assertRaisesRegex(AssertionError, self.GOOGLE_VALUEERROR_RE):
             self.check_validity(self.uut, [], self.good_file)
 
     def test_with_custom_configfile(self):

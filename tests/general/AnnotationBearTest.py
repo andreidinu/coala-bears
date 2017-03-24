@@ -1,15 +1,13 @@
 from queue import Queue
 import unittest
-import os
 
 from bears.general.AnnotationBear import AnnotationBear
-from coala_utils.string_processing.Core import escape
 from coalib.results.SourceRange import SourceRange
 from coalib.results.AbsolutePosition import AbsolutePosition
 from coalib.results.HiddenResult import HiddenResult
 from coalib.settings.Section import Section
 from coalib.settings.Setting import Setting
-from tests.LocalBearTestHelper import execute_bear
+from coalib.testing.LocalBearTestHelper import execute_bear
 
 
 class AnnotationBearTest(unittest.TestCase):
@@ -105,14 +103,14 @@ class AnnotationBearTest(unittest.TestCase):
         string2_start = string1_end+2
         text = ''.join(file_text)
         string2_end = text.find('"""', string2_start + 1) + 2
-        #+2 for length of """
+        # +2 for length of """
         string2 = SourceRange.from_absolute_position(
                                     'F',
                                     AbsolutePosition(file_text, string2_start),
                                     AbsolutePosition(file_text, string2_end))
         string3_start = text.find('"""', string2_end + 1)
         string3_end = text.find('"""', string3_start + 1) + 2
-        #+2 for length of """
+        # +2 for length of """
         string3 = SourceRange.from_absolute_position(
                                     'F',
                                     AbsolutePosition(file_text, string3_start),

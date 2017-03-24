@@ -9,8 +9,8 @@ from coalib.settings.Section import Section
 
 from bears.c_languages.ClangComplexityBear import (
     ClangComplexityBear)
-from tests.BearTestHelper import generate_skip_decorator
-from tests.LocalBearTestHelper import execute_bear
+from coalib.testing.BearTestHelper import generate_skip_decorator
+from coalib.testing.LocalBearTestHelper import execute_bear
 
 
 @generate_skip_decorator(ClangComplexityBear)
@@ -92,5 +92,5 @@ class ClangComplexityBearTest(unittest.TestCase):
 
         generator = self.bear.execute('not_existing', self.file)
         self.assertNotEqual(generator, None)
-        with self.assertRaises(TranslationUnitLoadError):
+        with self.assertRaisesRegex(TranslationUnitLoadError, 'C value error'):
             yield generator

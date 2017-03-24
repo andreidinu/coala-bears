@@ -1,17 +1,20 @@
 set -e
 set -x
+TERM=dumb
 
 # Choose the python versions to install deps for
 case $CIRCLE_NODE_INDEX in
  0) dep_versions=( "3.4.3" "3.5.1" ) ;;
  1) dep_versions=( "3.4.3" ) ;;
+ -1) dep_versions=( ) ;;  # set by .travis.yml
  *) dep_versions=( "3.5.1" ) ;;
 esac
 
 # apt-get commands
 export DEBIAN_FRONTEND=noninteractive
 
-deps="espeak libclang1-3.4 indent mono-mcs chktex r-base julia golang luarocks verilator cppcheck flawfinder"
+deps="libclang1-3.4 indent mono-mcs chktex r-base julia golang-go luarocks verilator cppcheck flawfinder devscripts"
+deps_infer="m4 opam"
 
 case $CIRCLE_BUILD_IMAGE in
   "ubuntu-12.04")
@@ -27,12 +30,20 @@ case $CIRCLE_BUILD_IMAGE in
     sudo chmod a+x /usr/bin/systemd-detect-virt
 
     # The non-apt go provided by Circle CI is acceptable
-    deps=${deps/golang/}
-    # Add packages which are available in xenial
-    # The xenial hlint is >= 1.9.1
-    deps="$deps hlint"
-    # Add libxml2-utils
-    deps="$deps libxml2-utils"
+    deps=${deps/golang-go/}
+    # Add packages which are already in the precise image
+    deps="$deps g++-4.9 libxml2-utils php-cli php7.0-cli php-codesniffer"
+    # gfortran on CircleCI precise is 4.6 and R irlba compiles ok,
+    # but for reasons unknown it fails on trusty without gfortran-4.9
+    deps="$deps gfortran-4.9"
+    # Add extra infer deps
+    deps_infer="$deps_infer ocaml camlp4"
+    # opam install --deps-only --yes infer fails with
+    #  Fatal error:
+    #  Stack overflow
+    # aspcud is an external dependency resolver, and is the recommended
+    # solution: https://github.com/ocaml/opam/issues/2507
+    deps_infer="$deps_infer aspcud"
     ;;
 esac
 
@@ -46,47 +57,49 @@ if [ "$USE_PPAS" = "true" ]; then
   sudo add-apt-repository -y ppa:staticfloat/julia-deps
   sudo add-apt-repository -y ppa:ondrej/golang
   sudo add-apt-repository -y ppa:avsm/ppa
+elif [ -n "$USE_PPAS" ]; then
+  for ppa in $USE_PPAS; do
+    sudo add-apt-repository -y ppa:$ppa
+  done
 fi
 
-deps_python_gi="glib2.0-dev gobject-introspection libgirepository1.0-dev python3-cairo-dev"
 deps_perl="perl libperl-critic-perl"
-deps_infer="m4 opam"
 
 sudo apt-get -y update
-sudo apt-get -y --no-install-recommends install $deps $deps_python_gi $deps_perl $deps_infer
+sudo apt-get -y --no-install-recommends install $deps $deps_perl $deps_infer
+
+# On Trusty, g++ & gfortran 4.9 need activating for R lintr dependency irlba.
+ls -al /usr/bin/gcc* /usr/bin/g++* /usr/bin/gfortran* || true
+if [[ "$CIRCLE_BUILD_IMAGE" == "ubuntu-14.04" ]]; then
+  sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20
+  sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
+  sudo update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-4.9 20
+fi
 
 # Change environment for flawfinder from python to python2
 sudo sed -i '1s/.*/#!\/usr\/bin\/env python2/' /usr/bin/flawfinder
 
-# Update hlint to latest version (not available in apt)
-if [[ -z "$(which hlint)" ]]; then
-  hlint_deb=$(ls -vr ~/.apt-cache/hlint_1.9.* 2>/dev/null | head -1)
-  if [[ -z "$hlint_deb" ]]; then
-    hlint_deb_filename=hlint_1.9.26-1_amd64.deb
-    # This is the same build as xenial hlint
-    hlint_deb_url="https://launchpad.net/ubuntu/+source/hlint/1.9.26-1/+build/8831318/+files/${hlint_deb_filename}"
-    hlint_deb=~/.apt-cache/$hlint_deb_filename
-    wget -O $hlint_deb $hlint_deb_url
-  fi
-  sudo dpkg -i $hlint_deb
-fi
-
 # NPM commands
-sudo rm -rf /opt/alex # Delete ghc-alex as it clashes with npm deps
+ALEX=$(which alex || true)
+# Delete 'alex' if it is not in a node_modules directory,
+# which means it is ghc-alex.
+if [[ -n "$ALEX" && "${ALEX/node_modules/}" == "${ALEX}" ]]; then
+  echo "Removing $ALEX"
+  sudo rm -rf $ALEX
+fi
 npm install
 
 # R commands
-mkdir -p ~/.RLibrary
-echo '.libPaths( c( "~/.RLibrary", .libPaths()) )' >> .Rprofile
+echo '.libPaths( c( "'"$R_LIB_USER"'", .libPaths()) )' >> .Rprofile
 echo 'options(repos=structure(c(CRAN="http://cran.rstudio.com")))' >> .Rprofile
-R -e "install.packages('lintr', dependencies=TRUE, quiet=TRUE, verbose=FALSE)"
-R -e "install.packages('formatR', dependencies=TRUE, quiet=TRUE, verbose=FALSE)"
+R -q -e 'install.packages("lintr")'
+R -q -e 'install.packages("formatR")'
 
 # GO commands
 go get -u github.com/golang/lint/golint
 go get -u golang.org/x/tools/cmd/goimports
 go get -u sourcegraph.com/sqs/goreturns
-go get -u golang.org/x/tools/cmd/gotype
+go get -u github.com/jayvdb/gotype
 go get -u github.com/kisielk/errcheck
 
 # Ruby commands
@@ -119,9 +132,16 @@ if ! dartanalyzer -v &> /dev/null ; then
 fi
 
 # VHDL Bakalint Installation
-if [ ! -e ~/bakalint-0.4.0 ]; then
+if [ ! -e ~/bakalint-0.4.0/bakalint.pl ]; then
   wget "http://downloads.sourceforge.net/project/fpgalibre/bakalint/0.4.0/bakalint-0.4.0.tar.gz?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Ffpgalibre%2Ffiles%2Fbakalint%2F0.4.0%2F&ts=1461844926&use_mirror=netcologne" -O ~/bl.tar.gz
   tar xf ~/bl.tar.gz -C ~/
+fi
+
+# elm-format Installation
+if [ ! -e ~/elm-format-0.18/elm-format ]; then
+  mkdir -p ~/elm-format-0.18
+  curl -fsSL -o elm-format.tgz https://github.com/avh4/elm-format/releases/download/0.5.2-alpha/elm-format-0.17-0.5.2-alpha-linux-x64.tgz
+  tar -xvzf elm-format.tgz -C ~/elm-format-0.18
 fi
 
 # Julia commands
@@ -149,10 +169,11 @@ if [ ! -e ~/pmd-bin-5.4.1/bin ]; then
 fi
 
 # Tailor (Swift) commands
-curl -fsSL https://tailor.sh/install.sh | sed 's/read -r CONTINUE < \/dev\/tty/CONTINUE=y/' > install.sh
-sudo bash install.sh
-
-# making coala cache the dependencies downloaded upon first run
-echo '' > dummy
-coala-ci --bears CheckstyleBear --files dummy --no-config --bear-dirs bears || true
-coala-ci --bears ScalaLintBear --files dummy --no-config --bear-dirs bears || true
+# Comment out the hardcoded PREFIX, so we can put it into ~/.local
+if [ ! -e ~/.local/tailor/tailor-latest ]; then
+  curl -fsSL -o install.sh https://tailor.sh/install.sh
+  sed -i 's/read -r CONTINUE < \/dev\/tty/CONTINUE=y/;;s/^PREFIX.*/# PREFIX=""/;' install.sh
+  PREFIX=$HOME/.local bash ./install.sh
+  # Provide a constant path for the executable
+  ln -s ~/.local/tailor/tailor-* ~/.local/tailor/tailor-latest
+fi

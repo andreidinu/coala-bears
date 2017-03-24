@@ -1,5 +1,5 @@
 from bears.natural_language.WriteGoodLintBear import WriteGoodLintBear
-from tests.LocalBearTestHelper import verify_local_bear
+from coalib.testing.LocalBearTestHelper import verify_local_bear
 
 good_file = """The 70s era was awesome for music lovers.
 """
@@ -142,7 +142,7 @@ WriteGoodLintBearWithIllusionTest = verify_local_bear(WriteGoodLintBear,
                                                           illusion_file,),
                                                       settings={
                                                         'allow_repeated_words':
-                                                            False})
+                                                        False})
 
 WriteGoodLintBearWithWeaselTest = verify_local_bear(WriteGoodLintBear,
                                                     valid_files=(good_file,
@@ -159,4 +159,4 @@ WriteGoodLintBearWithWeaselTest = verify_local_bear(WriteGoodLintBear,
                                                         adverb_file),
                                                     settings={
                                                       'allow_ambiguous_words':
-                                                          False})
+                                                      False})

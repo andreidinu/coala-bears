@@ -5,7 +5,7 @@ import re
 from safety import safety
 
 from coalib.bears.LocalBear import LocalBear
-from coalib.bears.requirements.PipRequirement import PipRequirement
+from dependency_management.requirements.PipRequirement import PipRequirement
 from coalib.results.Result import Result
 from coalib.results.SourceRange import SourceRange
 from coalib.settings.Setting import typed_list
@@ -30,7 +30,7 @@ class PySafetyBear(LocalBear):
         'Python 3 Requirements',
     }
     AUTHORS = {'Bence Nagy'}
-    REQUIREMENTS = {PipRequirement('safety', '0.5')}
+    REQUIREMENTS = {PipRequirement('safety', '0.5.1')}
     AUTHORS_EMAILS = {'bence@underyx.me'}
     LICENSE = 'AGPL'
     CAN_DETECT = {'Security'}

@@ -1,14 +1,12 @@
 import platform
 
 from coalib.bearlib.abstractions.Linter import linter
-from coalib.bears.requirements.DistributionRequirement import (
+from dependency_management.requirements.DistributionRequirement import (
     DistributionRequirement)
 from coalib.results.RESULT_SEVERITY import RESULT_SEVERITY
 
 
-@linter(executable=('perlcritic.bat'
-                    if platform.system() == 'Windows' else
-                    'perlcritic'),
+@linter(executable='perlcritic',
         output_format='regex',
         output_regex=r'(?P<message>.+) at '
                      r'line (?P<line>\d+), '
@@ -27,8 +25,7 @@ class PerlCriticBear:
     """
 
     LANGUAGES = {'Perl'}
-    REQUIREMENTS = {DistributionRequirement(apt_get='perl'),
-                    DistributionRequirement(apt_get='libperl-critic-perl')}
+    REQUIREMENTS = {DistributionRequirement(apt_get='libperl-critic-perl')}
     AUTHORS = {'The coala developers'}
     AUTHORS_EMAILS = {'coala-devel@googlegroups.com'}
     LICENSE = 'AGPL-3.0'

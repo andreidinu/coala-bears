@@ -2,7 +2,7 @@ import subprocess
 import sys
 
 from coalib.bearlib.abstractions.Linter import linter
-from coalib.bears.requirements.NpmRequirement import NpmRequirement
+from dependency_management.requirements.NpmRequirement import NpmRequirement
 
 
 @linter(executable='alex',
@@ -14,6 +14,9 @@ class AlexBear:
     """
     Checks the markdown file with Alex - Catch insensitive, inconsiderate
     writing.
+
+    Be aware that Alex and this bear only work on English text.
+    For more information, consult <https://www.npmjs.com/package/alex>.
     """
     LANGUAGES = {'Natural Language'}
     REQUIREMENTS = {NpmRequirement('alex', '3')}

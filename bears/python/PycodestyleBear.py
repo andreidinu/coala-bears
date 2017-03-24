@@ -1,6 +1,6 @@
 from coalib.bearlib.abstractions.Linter import linter
 
-from coalib.bears.requirements.PipRequirement import PipRequirement
+from dependency_management.requirements.PipRequirement import PipRequirement
 
 
 @linter(executable='pycodestyle',
@@ -12,7 +12,7 @@ class PycodestyleBear:
     A wrapper for the tool ``pycodestyle`` formerly known as ``pep8``.
     """
     LANGUAGES = {'Python', 'Python 2', 'Python 3'}
-    REQUIREMENTS = {PipRequirement('pycodestyle')}
+    REQUIREMENTS = {PipRequirement('pycodestyle', '2.2')}
     AUTHORS = {'The coala developers'}
     AUTHORS_EMAILS = {'coala-devel@googlegroups.com'}
     LICENSE = 'AGPL-3.0'
@@ -35,7 +35,7 @@ class PycodestyleBear:
         :param max_line_length:
             Limit lines to this length.
         """
-        arguments = [r"--format='%(row)d %(col)d %(code)s %(text)s'"]
+        arguments = [r'--format=%(row)d %(col)d %(code)s %(text)s']
 
         if pycodestyle_ignore:
             arguments.append('--ignore=' + pycodestyle_ignore)

@@ -2,21 +2,21 @@ import json
 
 from coalib.bearlib import deprecate_settings
 from coalib.bearlib.abstractions.Linter import linter
-from coalib.bears.requirements.NpmRequirement import NpmRequirement
+from dependency_management.requirements.NpmRequirement import NpmRequirement
 from coala_utils.param_conversion import negate
 
 
 def bool_or_str(value):
     try:
         return bool(value)
-    except:
+    except ValueError:
         return str(value)
 
 
 def bool_or_int(value):
     try:
         return bool(value)
-    except:
+    except ValueError:
         return int(value)
 
 

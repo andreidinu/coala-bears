@@ -2,7 +2,7 @@ import itertools
 import re
 
 from coalib.bearlib.abstractions.Linter import linter
-from coalib.bears.requirements.DistributionRequirement import (
+from dependency_management.requirements.DistributionRequirement import (
     DistributionRequirement)
 from coalib.settings.Setting import path, url
 from coalib.results.RESULT_SEVERITY import RESULT_SEVERITY
@@ -31,7 +31,7 @@ class XMLBear:
     See http://xmlsoft.org/xmllint.html
     """
     LANGUAGES = {'XML'}
-    REQUIREMENTS = {DistributionRequirement(apt_get='libxml2')}
+    REQUIREMENTS = {DistributionRequirement(apt_get='libxml2-utils')}
     AUTHORS = {'The coala developers'}
     AUTHORS_EMAILS = {'coala-devel@googlegroups.com'}
     LICENSE = 'AGPL-3.0'

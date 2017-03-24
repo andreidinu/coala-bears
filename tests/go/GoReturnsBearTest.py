@@ -1,5 +1,5 @@
 from bears.go.GoReturnsBear import GoReturnsBear
-from tests.LocalBearTestHelper import verify_local_bear
+from coalib.testing.LocalBearTestHelper import verify_local_bear
 
 good_file1 = """import "errors"
 
@@ -29,6 +29,5 @@ func main() {
 
 GoReturnsBearTest = verify_local_bear(
     GoReturnsBear,
-    (good_file1,
-     good_file2,),
+    (good_file1, good_file2,),
     (bad_file1, bad_file2,))

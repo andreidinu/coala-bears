@@ -3,9 +3,7 @@ import textwrap
 import sys
 
 from coalib.bearlib.abstractions.Linter import linter
-from coalib.bears.requirements.PipRequirement import PipRequirement
-from coalib.results.RESULT_SEVERITY import RESULT_SEVERITY
-from coalib.results.Result import Result
+from dependency_management.requirements.PipRequirement import PipRequirement
 
 
 class FlagInfo(namedtuple('FlagInfo', 'arg doc inverse')):
@@ -84,7 +82,7 @@ def add_param_docs(param_map):
 @linter(executable=sys.executable,
         prerequisite_check_command=(sys.executable, '-m', 'mypy', '-V'),
         output_format='regex',
-        output_regex=r'(?P<filename>[^:]+):((?P<line>\d+):)? '
+        output_regex=r'[^:]+:(?:(?P<line>\d+):)? '
                       '(?P<severity>error): (?P<message>.*)')
 class MypyBear:
     """
@@ -97,7 +95,7 @@ class MypyBear:
 
     LANGUAGES = {'Python', 'Python 2', 'Python 3'}
     AUTHORS = {'Petr Viktorin'}
-    REQUIREMENTS = {PipRequirement('mypy-lang', '0.4')}
+    REQUIREMENTS = {PipRequirement('mypy-lang', '0.4.6')}
     AUTHORS_EMAILS = {'encukou@gmail.com'}
     LICENSE = 'AGPL-3.0'
     ASCIINEMA_URL = 'https://asciinema.org/a/90736'

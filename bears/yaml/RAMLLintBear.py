@@ -1,5 +1,5 @@
 from coalib.bearlib.abstractions.Linter import linter
-from coalib.bears.requirements.NpmRequirement import NpmRequirement
+from dependency_management.requirements.NpmRequirement import NpmRequirement
 
 
 @linter(executable='ramllint',
@@ -15,7 +15,7 @@ class RAMLLintBear:
     """
 
     LANGUAGES = {'RAML'}
-    REQUIREMENTS = {NpmRequirement('ramllint', '1.2.2')}
+    REQUIREMENTS = {NpmRequirement('ramllint', '>=1.2.2 <1.2.4')}
     AUTHORS = {'The coala developers'}
     AUTHORS_EMAILS = {'coala-devel@googlegroups.com'}
     LICENSE = 'AGPL-3.0'

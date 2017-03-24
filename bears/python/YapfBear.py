@@ -1,11 +1,9 @@
-import sys
-
 from yapf.yapflib.yapf_api import FormatCode
 
 from coalib.bearlib import deprecate_settings
 from coalib.bearlib.spacing.SpacingHelper import SpacingHelper
 from coalib.bears.LocalBear import LocalBear
-from coalib.bears.requirements.PipRequirement import PipRequirement
+from dependency_management.requirements.PipRequirement import PipRequirement
 from coala_utils.ContextManagers import prepare_file
 from coalib.results.Result import Result
 from coalib.results.Diff import Diff
@@ -19,7 +17,7 @@ class YapfBear(LocalBear):
     """
     LANGUAGES = {'Python', 'Python 2', 'Python 3'}
     AUTHORS = {'The coala developers'}
-    REQUIREMENTS = {PipRequirement('yapf', '0.14')}
+    REQUIREMENTS = {PipRequirement('yapf', '0.14.0')}
     AUTHORS_EMAILS = {'coala-devel@googlegroups.com'}
     LICENSE = 'AGPL-3.0'
     CAN_FIX = {'Formatting'}
@@ -38,7 +36,7 @@ class YapfBear(LocalBear):
             join_multiple_lines: bool=True,
             spaces_around_power_operator: bool=True,
             spaces_before_comment: int=2,
-            space_between_ending_comma_and_closing_bracket: bool=False,
+            space_between_ending_comma_and_closing_bracket: bool=True,
             split_arguments_when_comma_terminated: bool=False,
             split_before_bitwise_operator: bool=False,
             split_before_first_argument: bool=False,

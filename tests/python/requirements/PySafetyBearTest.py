@@ -1,4 +1,3 @@
-import pytest
 from queue import Queue
 from unittest import mock
 
@@ -6,7 +5,7 @@ from safety.safety import Vulnerability
 
 from bears.python.requirements.PySafetyBear import PySafetyBear, Package
 from coalib.settings.Section import Section
-from tests.LocalBearTestHelper import LocalBearTestHelper
+from coalib.testing.LocalBearTestHelper import LocalBearTestHelper
 
 
 class PySafetyBearTest(LocalBearTestHelper):
